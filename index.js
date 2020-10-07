@@ -1,34 +1,42 @@
-const express = require('express');
-const fs = require('fs');
-const fileUpload = require('express-fileupload');
-const vision = require('@google-cloud/vision');
+const express = require( 'express' );
+const fileUpload = require( 'express-fileupload' );
+const imageReader = require('./models/');
+
+const crypto = require('crypto');
+const fs = require( 'fs' );
 
 const app = express();
 
-app.use(fileUpload());
+app.use( express.static( './public' ) );
+app.use( fileUpload() );
 
 
-app.use(express.static('./public'));
-
-app.get('/capture', (req, res)=>{
-    let file = fs.readFileSync(`./tmp/capture`);
-    res.send(file);
+app.get( '/capture/:cid', ( req, res ) =>
+{
+  let captureFile = fs.readFileSync( `./tmp/capture${cid}.jpg` );
+  res.sendFile( captureFile );
 });
 
-app.post('/upload', (req, res)=>{
-      if (!req.files || Object.keys(req.files).length === 0) {
-    return res.status(400).send('No files were uploaded.');
-  }
+
+app.post( '/upload', ( req, res ) =>
+{
+  if (!req.files || Object.keys( req.files ).length === 0)
+  {
+    return res.status( 400 ).send( 'No files were uploaded.' );
+  };
   let capture = req.files.capture_image;
-  capture.mv('./tmp/capture.jpg', function(err) {
-    if (err)
-      return res.status(500).send(err);
-
-        res.send('File uploaded!');
-    });
+  let cid = crypto.createHash('md5').update(`${capture}`).digest('hex');
+  capture.mv( `./tmp/capture${cid}.jpg`, (err)=>{
+    if(err){
+      res.send(500)
+    } else {
+      imageReader(`./tmp/capture${cid}.jpg`);
+    };
+  });
 });
 
-app.listen(3000, ()=>{
-    console.log('server listening@ localhost:3000')
-})
+
+  app.listen( 3000, () =>{
+    console.log( 'server listening@ localhost:3000' )
+  })
 
