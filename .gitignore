@@ -101,7 +101,4 @@ dist
 
 # TernJS port file
 .tern-port
-
-
-wrc.json
-.env
+*gauth.json
