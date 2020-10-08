@@ -1,7 +1,8 @@
 const express = require( 'express' );
 const fileUpload = require( 'express-fileupload' );
-const imageReader = require('./models/');
+const classyImage = require('./controllers/classyImage');
 
+const net = require('net');
 const crypto = require('crypto');
 const fs = require( 'fs' );
 
@@ -11,28 +12,34 @@ app.use( express.static( './public' ) );
 app.use( fileUpload() );
 
 
-app.get( '/capture/:cid', ( req, res ) =>
-{
+app.get( '/capture/:cid', ( req, res ) =>{
   let captureFile = fs.readFileSync( `./tmp/capture${cid}.jpg` );
   res.sendFile( captureFile );
 });
 
+app.get( '/deps/:name', ( req, res ) =>{
+  let depend = fs.readFileSync( `./models/${req.params.name}.js` );
+  res.sendFile( depend );
+});
 
-app.post( '/upload', ( req, res ) =>
-{
-  if (!req.files || Object.keys( req.files ).length === 0)
-  {
+
+
+app.post( '/upload', ( req, res ) =>{
+  if (!req.files || Object.keys( req.files ).length === 0){
     return res.status( 400 ).send( 'No files were uploaded.' );
   };
-  let capture = req.files.capture_image;
-  let cid = crypto.createHash('md5').update(`${capture}`).digest('hex');
-  capture.mv( `./tmp/capture${cid}.jpg`, (err)=>{
-    if(err){
-      res.send(500)
-    } else {
-      imageReader(`./tmp/capture${cid}.jpg`);
-    };
-  });
+  let upload = req.files.capture_image;
+  let captureResults = {
+    cid: crypto.createHash('md5').update(`${upload}`).digest('hex')
+  };
+  upload.mv( `./tmp/capture${captureResults.cid}.jpg`, (err)=>{
+      if(err) res.status(500).send('file moved')
+   });
+   classyImage(`./tmp/capture${captureResults.cid}.jpg`).then((results)=>{
+     captureResults.res = results;
+     console.log(results);
+     
+   }).catch(err=>{console.log(err)});
 });
 
 
