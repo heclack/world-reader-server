@@ -1,38 +1,29 @@
-const express = require( 'express' );
-const fileUpload = require( 'express-fileupload' );
-const {spawn} = require('child_process');
+const  proccessImageText  = require('./controllers/');
 
-const classyImage = require('./controllers/classyImage');
+const fs = require('fs');
 
-const crypto = require('crypto');
-const fs = require( 'fs' );
-
+const express = require('express');
 const app = express();
+const fileUpload = require('express-fileupload');
 
-app.use( express.static( './public' ) );
-app.use( fileUpload() );
+app.use(express.static('./public'));
+app.use(fileUpload());
 
-app.post( '/upload', ( req, res ) =>{
-  if(!req.files.capture_image){
-    return res.status(400)
-  } else {
-    (async(file = req.files.capture_image)=>{
-        let filename = `./tmp/capt_${file.md5}.${file.mimetype.split('/')[1]}`;
-        console.log(filename);
-        file.mv(filename, (err)=>{
-          if (err){
-            return console.log(err)
-          };
-        })
-      classyImage(filename).then((results)=>{
-        console.log(results)
-      }).catch(err=>{console.log(err)});
-    })();
-  }
+app.post('/upload', (req, res) => {
+	if (!req.files.capture_image) {
+		return res.sendStatus(400);
+	} else {
+		proccessImageText(req.files.capture_image).then((result)=>{
+			console.log(result);
+			return res.sendStatus(200);
+		}).catch(err=>{
+			return res.sendStatus(600)});
+	}
+});
+
+app.listen(3000, () => {
+	console.log('server listening@ localhost:3000');
 });
 
 
-  app.listen( 3000, () =>{
-    console.log( 'server listening@ localhost:3000' )
-  })
-
+///////////////////////////////////just to add some cleanup to dev env
