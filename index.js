@@ -1,6 +1,4 @@
-const  proccessImageText  = require('./controllers/');
-
-const fs = require('fs');
+const  interpImage  = require('./controllers/interpreter');
 
 const express = require('express');
 const app = express();
@@ -13,9 +11,9 @@ app.post('/upload', (req, res) => {
 	if (!req.files.capture_image) {
 		return res.sendStatus(400);
 	} else {
-		proccessImageText(req.files.capture_image).then((result)=>{
-			console.log(result);
-			return res.sendStatus(200);
+		interpImage(req.files.capture_image).then((result)=>{
+			
+			return res.send(result);
 		}).catch(err=>{
 			return res.sendStatus(600)});
 	}
@@ -24,6 +22,3 @@ app.post('/upload', (req, res) => {
 app.listen(3000, () => {
 	console.log('server listening@ localhost:3000');
 });
-
-
-///////////////////////////////////just to add some cleanup to dev env
